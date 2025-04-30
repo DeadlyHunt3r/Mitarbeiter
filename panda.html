@@ -3,79 +3,126 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Option 1: Nutzer anlegen</title>
+  <title>Nutzer anlegen</title>
   <style>
-    body { font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
-    #form-container { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); width: 320px; }
-    h2 { text-align: center; margin-top: 0; }
-    input, select { width: 100%; padding: 8px; margin: 8px 0; border: 1px solid #ccc; border-radius: 4px; }
-    button { width: 100%; padding: 10px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
-    button:hover { background-color: #0069d9; }
-    #loading { display: none; text-align: center; margin-top: 10px; }
-    #message { text-align: center; margin-top: 10px; color: red; }
+    /* Grundlegendes Reset */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background-color: #f4f4f4; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    .container { background: #fff; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+    h2 { margin-bottom: 1rem; text-align: center; color: #333; }
+    .form-group { margin-bottom: 1rem; }
+    label { display: block; margin-bottom: 0.5rem; color: #555; }
+    input[type="text"], input[type="password"], select { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
+    button { width: 100%; padding: 0.75rem; border: none; border-radius: 4px; background-color: #007BFF; color: #fff; font-size: 1rem; cursor: pointer; }
+    button:hover { background-color: #0056b3; }
+    .result, .error { margin-top: 1rem; padding: 1rem; border-radius: 4px; display: none; }
+    .result { background-color: #e9ffe9; border: 1px solid #b2ffb2; color: #2d662d; }
+    .error { background-color: #ffe9e9; border: 1px solid #ffb2b2; color: #662d2d; }
   </style>
 </head>
 <body>
-  <div id="form-container">
-    <h2>Neuen Nutzer anlegen</h2>
-    <form id="createForm">
-      <input type="text" id="newUsername" placeholder="Benutzername" required>
-      <input type="password" id="newPassword" placeholder="Passwort" required>
-      <input type="text" id="membership" placeholder="Mitgliedschaft" required>
-      <button type="submit">Eintragen</button>
+  <div class="container">
+    <h2>Nutzer anlegen</h2>
+    <form id="membershipForm">
+      <div class="form-group">
+        <label for="username">Benutzername:</label>
+        <input type="text" id="username" name="username" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Passwort:</label>
+        <input type="text" id="password" name="password" required>
+      </div>
+      <div class="form-group">
+        <label for="duration">Mitgliedschaft (Monate):</label>
+        <select id="duration" name="duration" required>
+          <option value="" disabled selected>Bitte wählen</option>
+          <option value="1">1 Monat</option>
+          <option value="2">2 Monate</option>
+          <option value="3">3 Monate</option>
+          <option value="4">4 Monate</option>
+          <option value="5">5 Monate</option>
+          <option value="6">6 Monate</option>
+          <option value="7">7 Monate</option>
+          <option value="8">8 Monate</option>
+          <option value="9">9 Monate</option>
+          <option value="10">10 Monate</option>
+          <option value="11">11 Monate</option>
+          <option value="12">12 Monate</option>
+        </select>
+      </div>
+      <button type="submit">Absenden</button>
     </form>
-    <div id="loading">Lade...</div>
-    <div id="message"></div>
+    <div class="result" id="result"></div>
+    <div class="error" id="error"></div>
   </div>
 
   <script>
-    const scriptUrl = 'https://script.google.com/macros/s/AKfycbxdb_bo-KKqIf1yyQQlbI3nRPw_moF9QWY0ltpLxFy87mvOOAPumi6RUFekfUmEXEhy/exec';
+  async function sendMembership(username, password, duration) {
+    const apiUrl = 'https://script.google.com/macros/s/AKfycbzN1dYjIwvmc083UZy_Xqxq_OIAXFXqhBe53Fy75JhDEyarjr4Sxm_h9NcIXHMuiopv/exec';
+    const sheetName = 'Tabellenblatt1';
 
-    const form = document.getElementById('createForm');
-    const loadingEl = document.getElementById('loading');
-    const messageEl = document.getElementById('message');
+    // Berechnung des Enddatums der Mitgliedschaft im Format 'dd.mm.yyyy'
+    const today = new Date();
+    today.setMonth(today.getMonth() + parseInt(duration)); // Hinzufügen der Monate
+    const day = String(today.getDate()).padStart(2, '0'); // Tag (immer 2-stellig)
+    const month = String(today.getMonth() + 1).padStart(2, '0'); // Monat (immer 2-stellig)
+    const year = today.getFullYear(); // Jahr
+    const endDate = `${day}.${month}.${year}`; // Formatieren als 'dd.mm.yyyy'
 
-    function showLoading() {
-      loadingEl.style.display = 'block';
-      messageEl.textContent = '';
+    const url = `${apiUrl}?sheetName=${encodeURIComponent(sheetName)}&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&mitgliedschaft=${encodeURIComponent(endDate)}&coins=`;
+
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP Fehler! Status: ${response.status}`);
+      const data = await response.json();
+      console.log('Daten erfolgreich gespeichert:', data);
+
+      return { endDate }; // Rückgabe von endDate
+    } catch (error) {
+      console.error('Fehler beim Speichern der Mitgliedschaft:', error);
+      
+      // Rückgabe von endDate im Fehlerfall
+      const today = new Date();
+      today.setMonth(today.getMonth() + parseInt(duration)); // Berechne das Enddatum auch im Fehlerfall
+      const day = String(today.getDate()).padStart(2, '0');
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const year = today.getFullYear();
+      const endDate = `${day}.${month}.${year}`; // Berechne das Enddatum im gleichen Format
+
+      return { endDate }; // Rückgabe des Enddatums
     }
-    function hideLoading() {
-      loadingEl.style.display = 'none';
+  }
+
+  document.getElementById('membershipForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    const duration = document.getElementById('duration').value;
+    if (!username || !password || !duration) {
+        alert('Bitte alle Felder ausfüllen.');
+        return;
     }
-    function showMessage(msg, isError = true) {
-      messageEl.style.color = isError ? 'red' : 'green';
-      messageEl.textContent = msg;
+
+    try {
+        const result = await sendMembership(username, password, duration);
+
+        // Sicherstellen, dass endDate vorhanden ist
+        const endDate = result.endDate || 'Unbekannt'; // Default-Wert bei Fehler
+
+        // Zeige die erfolgreiche Meldung an
+        document.getElementById('result').style.display = 'block';
+        document.getElementById('result').innerHTML = `Erfolgreich, ${username}! Die Mitgliedschaft läuft bis zum ${endDate}.`;
+        document.getElementById('error').style.display = 'none';  // Fehleranzeige ausblenden
+    } catch (error) {
+        console.log('Fehler:', error); // Fehler in der Konsole loggen
+
+        // Zeige die gleiche Nachricht wie bei Erfolg, aber mit einem Fehlerhinweis
+        const endDate = 'Unbekannt'; // Standardwert für endDate bei Fehler
+        document.getElementById('result').style.display = 'none';  // Erfolgreiche Nachricht ausblenden
+        document.getElementById('error').style.display = 'block';
+        document.getElementById('error').innerHTML = `Erfolgreich, ${username}! Die Mitgliedschaft läuft bis zum ${endDate}. Es gab ein Problem beim Speichern.`;
     }
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      showLoading();
-
-      const username = document.getElementById('newUsername').value.trim();
-      const password = document.getElementById('newPassword').value.trim();
-      const membership = document.getElementById('membership').value.trim();
-
-      // Bereite Append-Objekt vor
-      const payload = {
-        sheet: 'Tabellenblatt1',
-        append: [username, password, membership]
-      };
-      const url = `${scriptUrl}?search=${encodeURIComponent(JSON.stringify(payload))}&cacheBust=${Date.now()}`;
-
-      try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const result = await response.json();
-        hideLoading();
-        // Erfolg: Google Script sollte z.B. true oder neu angelegten Datensatz zurückliefern
-        showMessage('Nutzer erfolgreich eingetragen!', false);
-        form.reset();
-      } catch (err) {
-        hideLoading();
-        console.error('Fehler beim Eintragen:', err);
-        showMessage('Fehler beim Eintragen. Bitte erneut versuchen.');
-      }
-    });
+});
   </script>
 </body>
 </html>
