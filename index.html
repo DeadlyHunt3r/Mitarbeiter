@@ -18,20 +18,8 @@
     .icon-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 20px; margin-top: 20px; }
     .icon-item { background-color: #fff; border: 1px solid #ccc; border-radius: 8px; height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; cursor: pointer; transition: transform 0.2s; position: relative; }
     .icon-item:hover { transform: scale(1.05); border-color: #4CAF50; }
-    .icon-item img {
-      max-width: 60%; max-height: 60%; margin-bottom: 8px;
-      object-fit: contain;
-    }
-    .placeholder {
-      width: 60px; height: 60px;
-      background-color: #e0e0e0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      color: #888;
-      margin-bottom: 8px;
-    }
+    .icon-item img { max-width: 60%; max-height: 60%; margin-bottom: 8px; object-fit: contain; }
+    .placeholder { width: 60px; height: 60px; background-color: #e0e0e0; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #888; margin-bottom: 8px; }
   </style>
 </head>
 <body>
@@ -49,65 +37,50 @@
   <div id="dashboard" class="hidden">
     <h2>Auswahlmöglichkeiten</h2>
     <div class="icon-container">
-      <!-- Beispiel: Icon mit Bild oder Platzhalter -->
       <div class="icon-item" onclick="redirectTo('panda.html')">
         <img src="panda.png" alt="Icon 1" onerror="this.style.display='none'; this.parentNode.insertAdjacentHTML('afterbegin','<div class=\'placeholder\'>?</div>');">
         <span>Panda Gaming Nutzer Anlegen</span>
       </div>
-      <div class="icon-item" onclick="redirectTo('path/to/dein-bild2.png')">
-        <img src="path/to/dein-icon2.png" alt="Icon 2" onerror="this.style.display='none'; this.parentNode.insertAdjacentHTML('afterbegin','<div class=\'placeholder\'>?</div>');">
+      <div class="icon-item" onclick="redirectTo('option2.html')">
+        <img src="icon2.png" alt="Icon 2" onerror="this.style.display='none'; this.parentNode.insertAdjacentHTML('afterbegin','<div class=\'placeholder\'>?</div>');">
         <span>Option 2</span>
       </div>
       <!-- Weitere Icons hier -->
     </div>
   </div>
 
-  <script>
-    const scriptUrl = 'https://script.google.com/macros/s/AKfycbxdb_bo-KKqIf1yyQQlbI3nRPw_moF9QWY0ltpLxFy87mvOOAPumi6RUFekfUmEXEhy/exec';
+<script>
+  // Vorübergehend fest eingestellte Anmeldedaten
+  const users = [
+    { username: 'lewis', password: '123' },
+    { username: 'mira', password: '1508' }
+  ];
 
-    function showLoading() {
-      document.getElementById('loading').style.display = 'block';
-      document.getElementById('message').textContent = '';
+  function showLoading() {
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('message').textContent = '';}
+  function hideLoading() { document.getElementById('loading').style.display = 'none'; }
+  function showMessage(msg) { document.getElementById('message').textContent = msg; }
+
+  document.getElementById('loginForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    showLoading();
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+
+    hideLoading();
+    const validUser = users.find(u => u.username === username && u.password === password);
+    if (!validUser) {
+      showMessage('Benutzername oder Passwort ist falsch.');
+      return;
     }
-    function hideLoading() {
-      document.getElementById('loading').style.display = 'none';
-    }
-    function showMessage(msg) {
-      document.getElementById('message').textContent = msg;
-    }
+    // Login erfolgreich
+    document.getElementById('login').classList.add('hidden');
+    document.getElementById('dashboard').classList.remove('hidden');
+  });
 
-    document.getElementById('loginForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      showLoading();
+  function redirectTo(url) { window.location.href = url; }
+</script>
 
-      const username = document.getElementById('username').value.trim();
-      const password = document.getElementById('password').value.trim();
-      const searchObj = { sheet: 'Mitarbeiter', filter: { username, password } };
-      const query = encodeURIComponent(JSON.stringify(searchObj));
-      const url = `${scriptUrl}?search=${query}&cacheBust=${Date.now()}`;
-
-      try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`HTTP-Error: ${response.status}`);
-        const data = await response.json();
-        hideLoading();
-
-        if (!Array.isArray(data) || data.length === 0) {
-          showMessage('Benutzername oder Passwort ungültig.');
-          return;
-        }
-        document.getElementById('login').classList.add('hidden');
-        document.getElementById('dashboard').classList.remove('hidden');
-      } catch (err) {
-        hideLoading();
-        console.error('Login-Fehler:', err);
-        showMessage('Fehler beim Login. Bitte überprüfe Konsole & Netzwerk.');
-      }
-    });
-
-    function redirectTo(url) {
-      window.location.href = url;
-    }
-  </script>
 </body>
 </html>

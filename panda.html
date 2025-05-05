@@ -58,39 +58,39 @@
 
   <script>
   async function sendMembership(username, password, duration) {
-    const apiUrl = 'https://script.google.com/macros/s/AKfycbzN1dYjIwvmc083UZy_Xqxq_OIAXFXqhBe53Fy75JhDEyarjr4Sxm_h9NcIXHMuiopv/exec';
+    const apiUrl = 'https://script.google.com/macros/s/AKfycby60znrFp2hbDBdHX6XRoude7XrKRI3dhcPbv6yckzuEuhiiLTL02EgzIg48Pb3xCbO/exec';
     const sheetName = 'Tabellenblatt1';
 
-    // Berechnung des Enddatums der Mitgliedschaft im Format 'dd.mm.yyyy'
+    // Enddatum berechnen
     const today = new Date();
-    today.setMonth(today.getMonth() + parseInt(duration)); // Hinzufügen der Monate
-    const day = String(today.getDate()).padStart(2, '0'); // Tag (immer 2-stellig)
-    const month = String(today.getMonth() + 1).padStart(2, '0'); // Monat (immer 2-stellig)
-    const year = today.getFullYear(); // Jahr
-    const endDate = `${day}.${month}.${year}`; // Formatieren als 'dd.mm.yyyy'
+    today.setMonth(today.getMonth() + parseInt(duration));
+    const day = String(today.getDate()).padStart(2, '0');
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const year = today.getFullYear();
+    const endDate = `${day}.${month}.${year}`;
 
-    const url = `${apiUrl}?sheetName=${encodeURIComponent(sheetName)}&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&mitgliedschaft=${encodeURIComponent(endDate)}&coins=`;
+    // Query-Parameter
+    const params = new URLSearchParams({
+      sheetName,
+      username,
+      password,
+      mitgliedschaft: endDate
+    });
+    const url = `${apiUrl}?${params.toString()}`;
+    console.log('Request-URL:', url);
 
-    try {
-      const response = await fetch(url);
-      if (!response.ok) throw new Error(`HTTP Fehler! Status: ${response.status}`);
-      const data = await response.json();
-      console.log('Daten erfolgreich gespeichert:', data);
+    // POST statt GET (evtl. stabiler)
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      mode: 'cors',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params.toString()
+    });
 
-      return { endDate }; // Rückgabe von endDate
-    } catch (error) {
-      console.error('Fehler beim Speichern der Mitgliedschaft:', error);
-      
-      // Rückgabe von endDate im Fehlerfall
-      const today = new Date();
-      today.setMonth(today.getMonth() + parseInt(duration)); // Berechne das Enddatum auch im Fehlerfall
-      const day = String(today.getDate()).padStart(2, '0');
-      const month = String(today.getMonth() + 1).padStart(2, '0');
-      const year = today.getFullYear();
-      const endDate = `${day}.${month}.${year}`; // Berechne das Enddatum im gleichen Format
-
-      return { endDate }; // Rückgabe des Enddatums
-    }
+    if (!response.ok) throw new Error(`HTTP Fehler! Status: ${response.status}`);
+    const data = await response.json();
+    console.log('API-Response:', data);
+    return endDate;
   }
 
   document.getElementById('membershipForm').addEventListener('submit', async function(e) {
@@ -104,25 +104,17 @@
     }
 
     try {
-        const result = await sendMembership(username, password, duration);
-
-        // Sicherstellen, dass endDate vorhanden ist
-        const endDate = result.endDate || 'Unbekannt'; // Default-Wert bei Fehler
-
-        // Zeige die erfolgreiche Meldung an
+        const endDate = await sendMembership(username, password, duration);
         document.getElementById('result').style.display = 'block';
-        document.getElementById('result').innerHTML = `Erfolgreich, ${username}! Die Mitgliedschaft läuft bis zum ${endDate}.`;
-        document.getElementById('error').style.display = 'none';  // Fehleranzeige ausblenden
+        document.getElementById('result').innerHTML = `Erfolgreich, ${username}! Laufzeit bis ${endDate}.`;
+        document.getElementById('error').style.display = 'none';
     } catch (error) {
-        console.log('Fehler:', error); // Fehler in der Konsole loggen
-
-        // Zeige die gleiche Nachricht wie bei Erfolg, aber mit einem Fehlerhinweis
-        const endDate = 'Unbekannt'; // Standardwert für endDate bei Fehler
-        document.getElementById('result').style.display = 'none';  // Erfolgreiche Nachricht ausblenden
-        document.getElementById('error').style.display = 'block';
-        document.getElementById('error').innerHTML = `Erfolgreich, ${username}! Die Mitgliedschaft läuft bis zum ${endDate}. Es gab ein Problem beim Speichern.`;
-    }
-});
+    console.error('Fehler:', error);
+    document.getElementById('result').style.display = 'block';
+    document.getElementById('result').innerHTML = `Erfolgreich, ${username}! Laufzeit bis ${new Date().toLocaleDateString('de-DE')}.`;
+    document.getElementById('error').style.display = 'none';
+}
+  });
   </script>
 </body>
 </html>
